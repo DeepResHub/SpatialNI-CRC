@@ -1,0 +1,23 @@
+# SpatialNI-CRC public workflow dependencies
+#
+# Notes:
+# - Core pins follow tia6 where compatible with TIAToolbox 1.6.0 metadata.
+# This is a clean-install candidate, not an exact clone of the mixed tia6 environment.
+# - Install a PyTorch build matching your CUDA/CPU platform from:
+#   https://pytorch.org/get-started/locally/
+# - TIAToolbox may require OpenSlide runtime libraries on some systems.
+
+tiatoolbox==1.6.0
+torch==2.5.1
+torchvision==0.20.1
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.1
+scikit-image==0.24.0
+opencv-python==4.9.0.80
+matplotlib==3.9.3
+Pillow==11.0.0
+scikit-learn==1.5.2
+openslide-python==1.4.1
+zarr==2.18.3
+numcodecs==0.15.1

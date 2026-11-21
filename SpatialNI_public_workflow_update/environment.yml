@@ -1,0 +1,13 @@
+name: spatialni-crc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - openslide
+  - pip:
+      - -r requirements.txt
+
+# Install in a fresh environment; do not overlay on tia6.
+# Optional bulk-transcriptomic R/IOBR tools require a separate environment.
+# GPU builds must keep torch 2.5.1 paired with torchvision 0.20.1.
