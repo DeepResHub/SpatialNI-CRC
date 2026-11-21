@@ -326,9 +326,9 @@ def plot_wsi_patch_class_map(
     output_png: str | Path,
     wsi_path: str | Path | None = None,
     patch_size: int = 512,
-    patch_resolution: float = 20.0,
-    overview_resolution: float = 1.25,
-    units: str = "power",
+    patch_resolution: float = 0.5,
+    overview_resolution: float = 8.0,
+    units: str = "mpp",
     x_col: str = "x",
     y_col: str = "y",
     label_col: str = "predicted_class_label",
@@ -365,7 +365,12 @@ def plot_wsi_patch_class_map(
             from .wsi_preprocessing import read_slide_thumbnail
         background = read_slide_thumbnail(str(wsi_path), resolution=overview_resolution, units=units)
 
-    scale = overview_resolution / patch_resolution
+    if units == "mpp":
+        scale = patch_resolution / overview_resolution
+    elif units == "power":
+        scale = overview_resolution / patch_resolution
+    else:
+        raise ValueError("Patch map units must be mpp or power.")
     patch_size_scaled = patch_size * scale
     x_scaled = frame[x_col].to_numpy(dtype=float) * scale
     y_scaled = frame[y_col].to_numpy(dtype=float) * scale

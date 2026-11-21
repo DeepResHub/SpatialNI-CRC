@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
 Step 01 - WSI preprocessing.
@@ -70,12 +70,12 @@ def read_wsi_metadata(wsi_path: str) -> WSIMetadata:
 
 def read_slide_thumbnail(
     wsi_path: str,
-    resolution: float = 1.25,
-    units: str = "power",
+    resolution: float = 8.0,
+    units: str = "mpp",
 ) -> np.ndarray:
     """
     Read a thumbnail exactly in the style used in the reference notebook:
-    `reader.slide_thumbnail(resolution=1.25, units="power")`.
+    `reader.slide_thumbnail(resolution=8.0, units="mpp")`.
     """
     reader = open_wsi(wsi_path)
     return np.asarray(reader.slide_thumbnail(resolution=resolution, units=units))
@@ -85,8 +85,8 @@ def build_tiatoolbox_patch_extractor(
     wsi_path: str,
     patch_size: tuple[int, int] = (512, 512),
     stride: tuple[int, int] = (512, 512),
-    resolution: float = 20.0,
-    units: str = "power",
+    resolution: float = 0.5,
+    units: str = "mpp",
     input_mask: str | None = None,
 ):
     """
@@ -98,6 +98,10 @@ def build_tiatoolbox_patch_extractor(
     """
     _, patchextraction = _require_tiatoolbox()
     reader = open_wsi(wsi_path)
+    if units == "mpp":
+        native_mpp = reader.info.mpp
+        if native_mpp is None or not np.all(np.isfinite(native_mpp)) or np.any(np.asarray(native_mpp) <= 0):
+            raise ValueError("Valid native WSI MPP is required for physical-resolution resampling.")
     kwargs = {
         "input_img": reader,
         "method_name": "slidingwindow",
@@ -115,15 +119,16 @@ def notebook_style_patch_locations(
     wsi_path: str | Path,
     patch_size: tuple[int, int] = (512, 512),
     stride: tuple[int, int] = (512, 512),
-    resolution: float = 20.0,
-    units: str = "power",
+    resolution: float = 0.5,
+    units: str = "mpp",
     input_mask: str = "otsu",
 ) -> pd.DataFrame:
     """
     Return the WSI patch coordinates used by the original notebook workflow.
 
     The manuscript TCGA workflow used TIAToolbox sliding-window extraction with:
-    512 x 512 patches, 512 stride, 20x objective power, and an Otsu tissue mask.
+    512 x 512 patches, 512 stride, 0.5 micrometres/pixel, and an Otsu tissue mask.
+    TIAToolbox resamples from each slide's native MPP to the target MPP.
     The returned `x` and `y` coordinates are in the requested resolution space.
     """
     patch_extractor = build_tiatoolbox_patch_extractor(
@@ -168,8 +173,8 @@ def read_patches_from_locations(
     wsi_path: str,
     locations_df: pd.DataFrame,
     patch_size: tuple[int, int] = (512, 512),
-    resolution: float = 20.0,
-    units: str = "power",
+    resolution: float = 0.5,
+    units: str = "mpp",
     method: str = "read_bounds",
 ) -> list[np.ndarray]:
     """
@@ -195,6 +200,7 @@ def read_patches_from_locations(
                 size=patch_size,
                 resolution=resolution,
                 units=units,
+                coord_space="resolution",
             )
         elif method == "read_bounds":
             patch = reader.read_bounds(

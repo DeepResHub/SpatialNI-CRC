@@ -34,6 +34,11 @@ mechanistic readouts.
   features such as `TUM_to_STR_NI` and `STR_to_TUM_NI` capture complementary
   views of the same tumour-stromal interface.
 
+- **Scales to multicentre WSI cohorts**  
+  The manuscript applies SpatialNI to 1,549 patients from four institutional CRC
+  cohorts and TCGA, enabling cross-cohort evaluation of spatial tissue
+  architecture, progression, prognosis and molecular microenvironmental states.
+
 - **Reveals a progression model of interface expansion**  
   SpatialNI identifies a reproducible transition from tumour self-neighbourhoods
   toward expanded tumour-stromal, tumour-muscular and adipose-associated
@@ -93,13 +98,31 @@ preserving the core algorithms and software structure used by the manuscript.
 
 Run the code in the following order.
 
+### Environment
+
+Create a Python/R environment from the supplied draft files:
+
+```bash
+conda env create -f environment.yml
+conda activate spatialni-crc
+```
+
+Alternatively, install the Python dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+The R transcriptomic scripts additionally require `IOBR`; see
+`environment.yml` for installation notes.
+
 ### Step 01 - WSI preprocessing
 
 `wsi_preprocessing.py`
 
 - opens whole-slide images with TIAToolbox
 - defines Otsu-masked tissue regions
-- extracts a non-overlapping 512 x 512 patch grid at 20x power
+- extracts a non-overlapping 512 x 512 patch grid at 0.5 micrometres/pixel, resampled using each WSI's native MPP
 - preserves patch coordinates for spatial reconstruction
 
 ### Step 02 - Patch classification
@@ -171,13 +194,12 @@ Minimal expected layout:
 code/github/
   wsi/
     TCGA-A6-2676-01Z-00-DX1.c465f6e0-b47c-48e9-bdb1-67077bb16c67.svs
-  reference/
-    reference_patch.jpg
-  outputs/
+  outputs/TCGA-A6-2676-01/
+    reference_patch.png
 ```
 
 Reinhard stain normalization is the default. Provide a representative H&E
-reference patch at `reference/reference_patch.jpg`, or explicitly set
+reference patch, such as the bundled example at `outputs/TCGA-A6-2676-01/reference_patch.png`, or explicitly set
 `stain_normalization=False` for a quick end-to-end software test.
 
 ## Core Method Definition
@@ -207,3 +229,18 @@ http://www.spatialni-crc-atlas.cn/
 
 If you use this code, please cite the associated SpatialNI-CRC manuscript once
 available.
+
+## Installation and reproducibility scope
+
+Create a fresh environment with `conda env create -f environment.yml`, activate
+`spatialni-crc`, and run `python -m pip check`. The revised pins retain compatible
+versions from the development environment and use the TIAToolbox-supported
+Torch 2.5.1 / Torchvision 0.20.1 pair and Zarr 2.18.3. This configuration is not
+an exact clone of the mixed development environment. 
+
+The public workflow covers user-supplied WSI preprocessing, classification,
+SpatialNI and seven composite scores, with downstream statistical functions.
+Patient-level clinical data are private and are not included. Consequently,
+direct regeneration of the original clinical figures is not currently supported.
+The repository provides method-level reproducibility, not an unrestricted
+reproduction package for every result in the manuscript.
